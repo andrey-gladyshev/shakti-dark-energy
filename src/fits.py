@@ -343,3 +343,32 @@ if __name__ == "__main__":
 # These are the quantities relevant for model comparison and
 # they are all < 1, confirming statistical indistinguishability.
 # ---------------------------------------------------------------
+
+
+# ---------------------------------------------------------------
+# Table 4 reproduction (final, 2026-10-02)
+#
+#   Model        Ours      Paper    Delta
+#   LCDM         1416.81   1424.79   -7.98  (anomaly, see below)
+#   SHAKTI pure  1412.49   1412.77   -0.28  OK
+#   SHAKTI free  1412.23   1412.27   -0.04  OK
+#   CPL          1412.21   1412.72   -0.51  OK
+#
+# All three SHAKTI models agree with the paper to |Delta| < 0.6.
+# The LCDM row shows a stable ~8-unit offset that could NOT be
+# removed by any of the following tests:
+#   * zCMB / zHEL instead of zHD       (worse, chi^2 ~ 1440)
+#   * calibrator cut (1580 SNe)         (worse, chi^2 ~ 1400)
+#   * diagonal covariance only          (inconsistent, chi^2 ~ 714)
+#   * MU_SH0ES instead of m_b_corr      (identical, as expected)
+#   * scanning Omega_m in [0.28, 0.32]  (min = 1416.81 at 0.304)
+# No choice of Omega_m reproduces 1424.79 within our pipeline.
+# Likely explanation: paper used a different Pantheon+ revision
+# or an earlier standalone LCDM fit not updated after revision.
+#
+# Delta-chi^2 among SHAKTI models (our values vs paper):
+#   pure - free = 0.26   (paper 0.50)
+#   pure - CPL  = 0.28   (paper 0.05)
+# All < 1, confirming the paper's conclusion: the three SHAKTI
+# variants are statistically indistinguishable on current data.
+# ---------------------------------------------------------------
