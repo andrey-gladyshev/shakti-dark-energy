@@ -177,7 +177,7 @@ def fit_lcdm():
 
 
 if __name__ == "__main__":
-    fit_lcdm()
+    run_table4()
 
 
 # ---------------- Generalized chi^2 for any model ----------------
@@ -243,3 +243,77 @@ def chi2_total_for_E(E_func, z_bao, obs_bao, qty_bao, cov_bao_inv,
     cb = chi2_bao_for_E(E_func, z_bao, obs_bao, qty_bao, cov_bao_inv)
     cs = chi2_sn_for_E(E_func, z_sn, m_sn, C_sn_inv, ones_sn)
     return cb + cs
+
+
+# ---------------- Table 4: all four models ----------------
+
+def _load_all_data():
+    z_bao, obs_bao, qty_bao, cov_bao = load_bao()
+    cov_bao_inv = np.linalg.inv(cov_bao)
+    z_sn, m_sn, C_sn = load_pantheon()
+    C_sn_inv = np.linalg.inv(C_sn)
+    ones_sn = np.ones(len(z_sn))
+    return (z_bao, obs_bao, qty_bao, cov_bao_inv,
+            z_sn, m_sn, C_sn_inv, ones_sn)
+
+
+def _chi2_model(params, model, data):
+    (z_bao, obs_bao, qty_bao, cov_bao_inv,
+     z_sn, m_sn, C_sn_inv, ones_sn) = data
+    om = params[0]
+    extra = params[1:]
+    try:
+        E_func = _E_wrapper(model, om, extra)
+        return chi2_total_for_E(E_func, z_bao, obs_bao, qty_bao, cov_bao_inv,
+                                z_sn, m_sn, C_sn_inv, ones_sn)
+    except Exception:
+        return 1e12
+
+
+def run_table4():
+    """Reproduce Table 4 of the paper."""
+    from scipy.optimize import minimize
+
+    print("Loading data ...")
+    data = _load_all_data()
+    n = len(data[0]) + len(data[4])
+    ln_n = np.log(n)
+    print(f"  N = {n}   ln(N) = {ln_n:.4f}")
+    print()
+
+    # Format: (name, k, initial, bounds, model_id)
+    configs = [
+        ("Lambda-CDM",    1, [0.30],                [(0.15, 0.55)],                  "lcdm"),
+        ("SHAKTI pure",   1, [0.30],                [(0.15, 0.55)],                  "shakti_pure"),
+        ("SHAKTI free",   2, [0.30, 1.0],           [(0.15, 0.55), (0.1, 3.0)],      "shakti_free"),
+        ("CPL",           3, [0.30, -0.95, -0.10],  [(0.15, 0.55), (-2.0, -0.3), (-3.0, 3.0)], "cpl"),
+    ]
+
+    results = []
+    for name, k, x0, bounds, model_id in configs:
+        print(f"Fitting {name} (k={k}) ...")
+        res = minimize(_chi2_model, x0, args=(model_id, data),
+                       method="Nelder-Mead",
+                       options={"xatol": 1e-5, "fatol": 1e-5, "maxiter": 3000})
+        chi2_val = res.fun
+        aic = chi2_val + 2 * k
+        bic = chi2_val + k * ln_n
+        results.append((name, k, chi2_val, aic, bic, res.x))
+        print(f"  chi^2 = {chi2_val:.4f}  AIC = {aic:.4f}  BIC = {bic:.4f}")
+        print(f"  params = {res.x}")
+
+    print()
+    print("=" * 78)
+    print(f"{'Model':<14} {'k':>3} {'chi^2':>12} {'AIC':>12} {'BIC':>12}")
+    print("-" * 78)
+    for name, k, c2, aic, bic, _ in results:
+        print(f"{name:<14} {k:>3} {c2:>12.4f} {aic:>12.4f} {bic:>12.4f}")
+    print("=" * 78)
+    print()
+    print("Reference (Table 4 of the paper):")
+    print("  LCDM         k=1  chi^2=1424.79  AIC=1426.79  BIC=1432.17")
+    print("  SHAKTI pure  k=1  chi^2=1412.77  AIC=1414.77  BIC=1420.15")
+    print("  SHAKTI free  k=2  chi^2=1412.27  AIC=1416.27  BIC=1427.03")
+    print("  CPL          k=3  chi^2=1412.72  AIC=1418.72  BIC=1434.86")
+
+
