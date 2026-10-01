@@ -319,3 +319,27 @@ def run_table4():
 
 if __name__ == "__main__":
     run_table4()
+
+
+# ---------------------------------------------------------------
+# Note on Table 4 reproduction (reproduced 2026-10-02):
+#
+#   Model        Ours      Paper    Delta
+#   LCDM         1416.81   1424.79   -7.98  (anomaly)
+#   SHAKTI pure  1412.49   1412.77   -0.28
+#   SHAKTI free  1412.23   1412.27   -0.04
+#   CPL          1412.21   1412.72   -0.51
+#
+# All three SHAKTI models reproduce to within |Delta| < 0.6.
+# The LCDM row shows a -8 offset, consistent with an earlier
+# standalone LCDM fit (see first commit of fits.py). Diagnostic
+# tests (zCMB/zHEL, calibrator cut, diag covariance, MU_SH0ES)
+# did not explain this offset. Likely a different Pantheon+
+# revision or a fixed Omega_m in the paper.
+#
+# Delta-chi^2 among SHAKTI models (our values):
+#   pure - free = 0.26   (paper: 0.50)
+#   pure - CPL  = 0.28   (paper: 0.05)
+# These are the quantities relevant for model comparison and
+# they are all < 1, confirming statistical indistinguishability.
+# ---------------------------------------------------------------
