@@ -178,3 +178,68 @@ def fit_lcdm():
 
 if __name__ == "__main__":
     fit_lcdm()
+
+
+# ---------------- Generalized chi^2 for any model ----------------
+
+def _E_wrapper(model, om, extra=()):
+    """Return callable E(z) for a given model."""
+    from . import models as M
+    if model == "lcdm":
+        return lambda z: M.E_lcdm(z, om)
+    if model == "shakti_pure":
+        return lambda z: M.E_shakti(z, om, alpha0=M.ALPHA0_PURE)
+    if model == "shakti_free":
+        alpha0 = extra[0]
+        return lambda z: M.E_shakti(z, om, alpha0=alpha0)
+    if model == "cpl":
+        w0, wa = extra
+        return lambda z: M.E_cpl(z, om, w0, wa)
+    raise ValueError(f"Unknown model: {model}")
+
+
+def _comoving_from_E(E_func, z):
+    """Comoving distance int_0^z dz'/E(z') for scalar z."""
+    return quad(lambda zp: 1.0 / E_func(zp), 0, z,
+                epsabs=1e-10, epsrel=1e-10)[0]
+
+
+def chi2_bao_for_E(E_func, z_bao, obs_bao, qty_bao, cov_bao_inv):
+    """chi^2_BAO after analytic marginalization over alpha."""
+    D = np.zeros(len(z_bao))
+    for i, (zi, qi) in enumerate(zip(z_bao, qty_bao)):
+        Ei = E_func(zi)
+        if qi == "DV_over_rs":
+            Ii = _comoving_from_E(E_func, zi)
+            D[i] = (zi * Ii * Ii / Ei) ** (1.0 / 3.0)
+        elif qi == "DM_over_rs":
+            D[i] = _comoving_from_E(E_func, zi)
+        elif qi == "DH_over_rs":
+            D[i] = 1.0 / Ei
+    CD = cov_bao_inv @ D
+    Co = cov_bao_inv @ obs_bao
+    a = float(D @ Co)
+    b = float(D @ CD)
+    if b <= 0 or a <= 0:
+        return 1e12
+    alpha = b / a
+    r = D / alpha - obs_bao
+    return float(r @ cov_bao_inv @ r)
+
+
+def chi2_sn_for_E(E_func, z_sn, m_sn, C_sn_inv, ones_sn):
+    """chi^2_SNe after analytic marginalization over M."""
+    Dc = np.array([_comoving_from_E(E_func, zi) for zi in z_sn])
+    mu = 5.0 * np.log10(C_OVER_H0 * (1.0 + z_sn) * Dc) + 25.0
+    Delta = m_sn - mu
+    CD = C_sn_inv @ Delta
+    S1 = float(ones_sn @ (C_sn_inv @ ones_sn))
+    SD = float(ones_sn @ CD)
+    return float(Delta @ CD - SD ** 2 / S1)
+
+
+def chi2_total_for_E(E_func, z_bao, obs_bao, qty_bao, cov_bao_inv,
+                     z_sn, m_sn, C_sn_inv, ones_sn):
+    cb = chi2_bao_for_E(E_func, z_bao, obs_bao, qty_bao, cov_bao_inv)
+    cs = chi2_sn_for_E(E_func, z_sn, m_sn, C_sn_inv, ones_sn)
+    return cb + cs
