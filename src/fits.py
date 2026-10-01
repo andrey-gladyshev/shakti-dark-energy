@@ -176,8 +176,6 @@ def fit_lcdm():
     print("=" * 60)
 
 
-if __name__ == "__main__":
-    run_table4()
 
 
 # ---------------- Generalized chi^2 for any model ----------------
@@ -317,3 +315,7 @@ def run_table4():
     print("  CPL          k=3  chi^2=1412.72  AIC=1418.72  BIC=1434.86")
 
 
+
+
+if __name__ == "__main__":
+    run_table4()
