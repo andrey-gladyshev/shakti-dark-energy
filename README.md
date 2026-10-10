@@ -1,4 +1,8 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23204675.svg)](https://doi.org/10.5281/zenodo.23204675)
 # Shakti Dark Energy
+
+**Associated preprint:** [10.5281/zenodo.23204675](https://doi.org/10.5281/zenodo.23204675)
+— *Dark Energy from Frozen Quantum Fluctuations: A One-Parameter Model with Numerical Consistency Check* (Gladyshev, 2026)
 
 Numerical code for the paper:
 
