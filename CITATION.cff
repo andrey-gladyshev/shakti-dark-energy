@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use this code or data, please cite the associated preprint."
+title: "Shakti Dark Energy"
+abstract: "Numerical code and data for the preprint on quantum origin of dark energy initial conditions."
+authors:
+  - family-names: "Gladyshev"
+    given-names: "Andrey"
+version: "1.0.0"
+date-released: "2026-10-07"
+doi: "10.5281/zenodo.23204675"
+url: "https://github.com/andrey-gladyshev/shakti-dark-energy"
+license: "MIT"
